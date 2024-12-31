@@ -18,6 +18,8 @@ namespace DotNetService.Infrastructure.Databases
 
         public DbSet<Notification> Notifications { get; set; }
 
+        public DbSet<Order> Orders { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Set default max length column for string data type
