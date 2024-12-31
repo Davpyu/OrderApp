@@ -24,8 +24,8 @@ namespace DotNetService.Domain.Auth.Services
         private readonly AuthQueryRepository _authQueryRepository = authQueryRepository;
         private readonly PermissionQueryRepository _permissionQueryRepository = permissionQueryRepository;
         private readonly IConfiguration _config = config;
-        private readonly LocalStorageDatabase _localStorage = localStorage; private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-
+        private readonly LocalStorageDatabase _localStorage = localStorage;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         private readonly AuthUtil _authUtil = authUtil;
 
         public async Task<AuthTokenResultDto> SignIn(AuthSignInDto authSignIn)
