@@ -50,5 +50,21 @@
     {
         "name": "Permission Delete",
         "key": "permission-delete"
+    },
+    {
+        "name": "Order View",
+        "key": "order-view"
+    },
+    {
+        "name": "Order Create",
+        "key": "order-create"
+    },
+    {
+        "name": "Order Update",
+        "key": "order-update"
+    },
+    {
+        "name": "Order Delete",
+        "key": "order-delete"
     }
 ]

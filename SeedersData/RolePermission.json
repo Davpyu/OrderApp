@@ -94,5 +94,21 @@
     {
         "roleKey": "admin",
         "permissionKey": "permission-delete"
+    },
+    {
+        "roleKey": "admin",
+        "permissionKey": "order-view"
+    },
+    {
+        "roleKey": "admin",
+        "permissionKey": "order-create"
+    },
+    {
+        "roleKey": "admin",
+        "permissionKey": "order-update"
+    },
+    {
+        "roleKey": "admin",
+        "permissionKey": "order-delete"
     }
 ]
