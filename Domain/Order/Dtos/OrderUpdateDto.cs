@@ -5,13 +5,13 @@ namespace DotNetService.Domain.Order.Dtos
     public class OrderUpdateDto
     {
         [Required]
-        public int Quantity { get; set; }
+        public OrderStatus Status { get; set; }
 
         public static Models.Order Assign(OrderUpdateDto data)
         {
             Models.Order res = new()
             {
-                Quantity = data.Quantity,
+                Status = data.Status,
             };
 
             return res;

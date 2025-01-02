@@ -11,15 +11,16 @@ namespace DotNetService.Domain.Order.Repositories
     {
         private readonly IamDBContext _context = context;
 
-        public async Task Create(Models.Order data, Guid userId, string orderNumber)
+        public async Task<Guid> Create(Models.Order data, Guid userId, string orderNumber)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
+            var id = Guid.NewGuid();
 
             try
             {
                 var newOrder = await _context.Orders.AddAsync(new Models.Order
                 {
-                    Id = Guid.NewGuid(),
+                    Id = id,
                     InventoryId = data.InventoryId,
                     Quantity = data.Quantity,
                     UserId = userId,
@@ -36,6 +37,13 @@ namespace DotNetService.Domain.Order.Repositories
                 await _context.Database.RollbackTransactionAsync();
                 throw;
             }
+            finally
+            {
+                // to remove current tracking on orders
+                _context.ChangeTracker.Clear();
+            }
+
+            return id;
         }
 
         public async Task Update(Guid id, Models.Order newData)
@@ -45,9 +53,9 @@ namespace DotNetService.Domain.Order.Repositories
             try
             {
                 // Update the order
-                Models.Order data = new() { Id = id };
-                _context.Orders.Attach(data);
-                _context.Orders.Update(newData);
+                var data = await _context.Orders.Where(data => data.Id == id).FirstOrDefaultAsync();
+                data.Status = newData.Status;
+                _context.Orders.Update(data);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();

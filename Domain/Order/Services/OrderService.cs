@@ -44,9 +44,11 @@ namespace DotNetService.Domain.Order.Services
 
             var data = OrderCreateDto.Assign(dataCreate);
 
-            await _orderStoreRepository.Create(data, user.Id, orderNumber);
+            Guid id = await _orderStoreRepository.Create(data, user.Id, orderNumber);
 
-            await _checkInventoryEvent.Publish(data);
+            var dataEvent = new OrderEventDto(data, id);
+
+            await _checkInventoryEvent.Publish(dataEvent);
         }
 
         public async Task<OrderResultDto> Detail(Guid id)
