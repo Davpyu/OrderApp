@@ -31,10 +31,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Polly.Core" Version="8.5.0" />
     <PackageReference Include="Quartz" Version="3.13.1" />
     <PackageReference Include="Quartz.AspNetCore" Version="3.13.1" />
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.13.1" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <SonarQubeSetting Include="sonar.exclusions">
       <Value>obj/**/*,bin/**/*,Migrations/*,Log/*,.gitlab/**/*,.vscode/*,SeedersData/*, copilot-prompts/*, .editorconfig</Value>
     </SonarQubeSetting>

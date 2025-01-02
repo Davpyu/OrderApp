@@ -21,6 +21,8 @@ using DotNetService.Infrastructure.Databases;
 using DotNetService.Infrastructure.ModelBinder;
 using Quartz;
 using DotNetService.Infrastructure.Jobs;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 namespace DotNetService
 {
@@ -63,6 +65,8 @@ namespace DotNetService
             Listeners(services);
 
             Jobs(services);
+
+            Events(services);
 
             // Queue Servicee
             services.AddHostedService<QueuedHostedService>();
@@ -129,6 +133,8 @@ namespace DotNetService
                 }
             );
 
+            // services.AddOpenApi();
+
             var circuitBreakerPolicy = GetCircuitBreakerPolicy();
 
             services.AddHttpClient<HttpIntegration>()
@@ -180,6 +186,52 @@ namespace DotNetService
                 options.WaitForJobsToComplete = true;
             });
 
+            services.AddEndpointsApiExplorer();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Order Web API",
+                    Description = ".NET Web API for Order App",
+                    TermsOfService = new Uri("https://example.com/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "John Doe",
+                        Email = string.Empty,
+                        Url = new Uri("https://google.com/"),
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "Use under LICX",
+                        Url = new Uri("https://example.com/license"),
+                    }
+                });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 12345abcdef')",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -207,11 +259,19 @@ namespace DotNetService
 
             app.UseResponseCaching();
 
+            app.UseSwagger();
+            app.UseSwaggerUI(x =>
+            {
+                x.SwaggerEndpoint("/swagger/v1/swagger.json", ".NET Web API for Order App");
+            });
+
             app.UseEndpoints(x =>
             {
                 x.MapControllers();
                 x.MapHealthChecks("/health").AllowAnonymous();
             });
+
+            // app.MapOpenApi();
         }
 
         private static string SanitizeFileName(string fileName)

@@ -23,7 +23,7 @@ namespace DotNetService.Infrastructure.Middlewares
         public async Task Invoke(HttpContext context)
         {
             var endpoint = context.GetEndpoint();
-            if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() is object)
+            if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() is object || context.Request.Path.ToString().Contains("swagger"))
             {
                 await _next(context);
                 return;
