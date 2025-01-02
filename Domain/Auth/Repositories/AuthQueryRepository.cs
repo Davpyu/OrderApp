@@ -11,7 +11,7 @@ namespace DotNetService.Domain.Auth.Repositories
 
         public async Task<Models.User> FindOneById(Guid id)
         {
-            return await _context.Users.SingleOrDefaultAsync(data => data.Id.Equals(id));
+            return await _context.Users.Include(data => data.UserRoles).ThenInclude(data => data.Role).ThenInclude(data => data.RolePermissions).ThenInclude(data => data.Permission).SingleOrDefaultAsync(data => data.Id.Equals(id));
         }
 
         public async Task<Models.User> FindOneByEmail(string email)
