@@ -1,7 +1,9 @@
+using DotNetService.Constants.Event;
 using DotNetService.Constants.Logger;
 using DotNetService.Domain.Order.Dtos;
 using DotNetService.Domain.Order.Repositories;
 using DotNetService.Infrastructure.Integrations.NATs;
+using DotNetService.Infrastructure.Shareds;
 using NATS.Client.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -9,6 +11,12 @@ using Polly;
 
 namespace DotNetService.Domain.Order.Listeners
 {
+    public enum QuantityStatus
+    {
+        Approved,
+        Rejected
+    }
+
     public class CheckInventoryEvent(
         NATsIntegration natConnection,
         ILoggerFactory loggerFactory,
@@ -21,15 +29,8 @@ namespace DotNetService.Domain.Order.Listeners
 
         public async Task Publish(OrderEventDto data)
         {
-            _logger.LogInformation("Sending inventory.check event");
-
-            var options = new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new SnakeCaseNamingStrategy()
-                }
-            };
+            var jsonData = Utils.JsonSerialize(data);
+            _logger.LogInformation("Sending {name} event started with data {jsonData}", InventoryEventConstant.CHECK_INVENTORY_SUBJECT, jsonData);
 
             // Define a retry policy with exponential backoff
             var retryPolicy = Policy
@@ -46,11 +47,16 @@ namespace DotNetService.Domain.Order.Listeners
             {
                 await retryPolicy.ExecuteAsync(async () =>
                 {
-                    var res = await _natConnection.PublishAndGetReply<string, IDictionary<string, object>>("inventory.check", JsonConvert.SerializeObject(data, options));
+                    var res = await _natConnection.PublishAndGetReply<string, object>("inventory.check", jsonData);
 
-                    var approval = res.Where(x => x.Key == "approval").First().Value;
+                    var jsonResult = Utils.JsonSerialize(res);
+                    _logger.LogInformation($"Getting a reply with data {jsonResult}");
 
-                    if (approval.ToString() == "Approved")
+                    var result = Utils.JsonDeserialize<Dictionary<string, string>>(jsonResult);
+
+                    var approval = result.Where(x => x.Key == "status").First().Value;
+
+                    if (Enum.Parse<QuantityStatus>(approval) == QuantityStatus.Approved)
                     {
                         // update to Confirmed order
                         Models.Order updateData = new()
