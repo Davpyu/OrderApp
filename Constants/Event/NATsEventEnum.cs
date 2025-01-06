@@ -28,7 +28,8 @@ namespace DotNetService.Constants.Event
         UPDATE_STATUS,
 
         // Specific action
-        LOGIN
+        LOGIN,
+        CHECK
     }
 
     public enum NATsEventNATSType
@@ -42,7 +43,8 @@ namespace DotNetService.Constants.Event
         ALL = NATsEventCommon.ALL,
         LOGGER,
         AUTH,
-        USER
+        USER,
+        INVENTORY
 
         // Add more module here
     }

@@ -18,19 +18,24 @@ namespace DotNetService.Domain.Order.Listeners
     }
 
     public class CheckInventoryEvent(
-        NATsIntegration natConnection,
+        NATsIntegration natsIntegration,
         ILoggerFactory loggerFactory,
         OrderStoreRepository orderStoreRepository
     )
     {
         public readonly ILogger _logger = loggerFactory.CreateLogger(LoggerConstant.ACTIVITY);
-        private readonly NATsIntegration _natConnection = natConnection;
+        private readonly NATsIntegration _natsIntegration = natsIntegration;
         private readonly OrderStoreRepository _orderStoreRepository = orderStoreRepository;
 
         public async Task Publish(OrderEventDto data)
         {
             var jsonData = Utils.JsonSerialize(data);
-            _logger.LogInformation("Sending {name} event started with data {jsonData}", InventoryEventConstant.CHECK_INVENTORY_SUBJECT, jsonData);
+            var subject = _natsIntegration.Subject(
+                NATsEventModuleEnum.INVENTORY,
+                NATsEventActionEnum.CHECK,
+                NATsEventStatusEnum.REQUEST
+            );
+            _logger.LogInformation("Sending {name} event started with data {jsonData}", subject, jsonData);
 
             // Define a retry policy with exponential backoff
             var retryPolicy = Policy
@@ -47,7 +52,7 @@ namespace DotNetService.Domain.Order.Listeners
             {
                 await retryPolicy.ExecuteAsync(async () =>
                 {
-                    var res = await _natConnection.PublishAndGetReply<string, object>("inventory.check", jsonData);
+                    var res = await _natsIntegration.PublishAndGetReply<string, object>(subject, jsonData);
 
                     var jsonResult = Utils.JsonSerialize(res);
                     _logger.LogInformation($"Getting a reply with data {jsonResult}");
@@ -65,7 +70,7 @@ namespace DotNetService.Domain.Order.Listeners
                         };
 
                         await _orderStoreRepository.Update(data.Id, updateData);
-                        _logger.LogInformation("Event inventory.check has gotten a reply and order has been updated to Confirmed");
+                        _logger.LogInformation("Event {subject} has gotten a reply and order has been updated to Confirmed", subject);
                     }
 
                     else
@@ -77,7 +82,7 @@ namespace DotNetService.Domain.Order.Listeners
                         };
 
                         await _orderStoreRepository.Update(data.Id, updateData);
-                        _logger.LogInformation("Event inventory.check has gotten a reply and order has been updated to Rejected");
+                        _logger.LogInformation("Event {subject} has gotten a reply and order has been updated to Rejected", subject);
                     }
                 });
             }
